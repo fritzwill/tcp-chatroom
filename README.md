@@ -81,7 +81,7 @@ The other client would see this in their console:
 ```
 Please enter a command: P (Public message), D (Direct message), Q (Quit)
 > 
-*** Incoming privae message from wfritz ***: test2
+*** Incoming private message from wfritz ***: test2
 >
 ```
 ## How 'users.csv' Works
