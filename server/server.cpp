@@ -1,5 +1,8 @@
-// Server file
+// Will Fritz
+// tcp chatroom server
+// 3/25/2019
 
+// includes
 #include <stdio.h>
 #include <typeinfo>
 #include <stdlib.h>
@@ -18,11 +21,13 @@
 #include <time.h>
 #include <map>
 #include <pthread.h>
+
+// macros
 #define MAX_PENDING 5
 #define MAX_LINE 2048
 #define MAX_CLIENTS 10
 
-
+// namespace
 using namespace std;
 
 // structs
@@ -45,7 +50,7 @@ void send_string(string);
 void publicMessage(int);
 void directMessage(int);
 
-
+// main method
 int main(int argc, char * argv[]) {
 	struct sockaddr_in sin, client_addr;
     char buf[MAX_LINE];
@@ -53,6 +58,8 @@ int main(int argc, char * argv[]) {
     int addr_len, SERVER_PORT, len;
     int opt = 1;
 
+    // hanlde command line arguments
+    // first arg: server port
     if (argc == 2) {
         SERVER_PORT = atoi(argv[1]);
     } else {
@@ -88,8 +95,7 @@ int main(int argc, char * argv[]) {
         perror("simplex-talk: listen");
         exit(1);
     }
-    // printf("Welcome to the first TCP Server!\n");
- 
+
     /* wait for connection, then receive and print text */
     cout << "Accepting connections on port " << SERVER_PORT << endl;
     addr_len = sizeof(client_addr);
@@ -102,7 +108,6 @@ int main(int argc, char * argv[]) {
     }
     string usr, pass;
     while (fin >> usr >> pass){
-        //cout<< usr.substr(0,usr.size()-1) << pass << endl;
         User newUser;
         newUser.online = false;
         newUser.mPassword = pass;
@@ -112,7 +117,7 @@ int main(int argc, char * argv[]) {
     }
 	fin.close();
 
-
+    // take in and accept new clients each on their own thread
 	while ((new_s = accept(s, (struct sockaddr *)&client_addr, (socklen_t*)&addr_len)) >= 0) {
         
 		if (NUM_THREADS == 10) {
@@ -132,16 +137,17 @@ int main(int argc, char * argv[]) {
 	}
 }
 
+// sends string over tcp connection
 void send_string(int sock, string toSend, string message_type) {
 	toSend = message_type + toSend;
     int len = toSend.length();
-    //cout << "SENDING THIS: " << toSend.c_str() << endl;
     if (send(sock, toSend.c_str(), len, 0) == -1) {
         perror("Client send error!\n");
         exit(1);
     }
 }
 
+// handles login workflow
 void handle_login(int sock) {
 
 	int read_size;
@@ -154,7 +160,6 @@ void handle_login(int sock) {
 	
 	// user exists
 	if (it != users.end()) {
-        //cout << "Found user !" << endl;
 		it->second.mSock = sock;		
 		// prompt user for password
 		message = "existUser";
@@ -173,9 +178,8 @@ void handle_login(int sock) {
 				send_string(sock,message, "C");		
 			}
 		}
-
+    // new user
 	} else {
-        //cout << "new user!" << endl;
 		// prompt user for new password
 		message = "Creating New User\n Enter password: ";
 		send_string(sock,message, "C");
@@ -215,6 +219,7 @@ void handle_login(int sock) {
 
 }
 
+// thread for each client
 void *clientinteraction(void *socket_desc) {
 
 	int sock = *(int*)socket_desc;
@@ -223,6 +228,8 @@ void *clientinteraction(void *socket_desc) {
 
 	handle_login(sock);
     string msgFrmClient;
+
+    // handle client inputs
     while (1){
         recvWithCheck(sock, msgFrmClient);
         if (msgFrmClient == "pubMsg"){
@@ -241,6 +248,7 @@ void *clientinteraction(void *socket_desc) {
 	NUM_THREADS--;
 }
 
+// send message to all users
 void publicMessage(int sock){
     string msgFromClient;
     recvWithCheck(sock, msgFromClient);
@@ -262,6 +270,7 @@ void publicMessage(int sock){
     send_string(sock, "P:OK", "C");
 }
 
+// send message to specific user
 void directMessage(int sock){
     // find list of online servers
     string onlineUsers = "";
@@ -301,7 +310,7 @@ void directMessage(int sock){
     }
 }
     
-
+// recieves from client and makes sure the number of bytes read is okay
 int recvWithCheck(int sockFd, string &outMsg){
     int numBytesRec;
     char buf[MAX_LINE];

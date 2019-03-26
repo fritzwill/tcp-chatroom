@@ -1,3 +1,8 @@
+// Will Fritz
+// tcp chatroom client
+// 3/25/2019
+
+// includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,8 +21,11 @@
 #include <time.h>
 #include <pthread.h>
 #include "pg1lib.h"
+
+// macros
 #define MAX_LINE 2048
 
+// namespace
 using namespace std;
 
 // globals
@@ -50,7 +58,6 @@ void send_long(long int val) {
 }
 
 int rec_int() {
-
 	int i;
 	char buf[MAX_LINE];	
 
@@ -63,13 +70,12 @@ int rec_int() {
 	sscanf(buf, "%d", &value); // convert value to an int
 
 	return value;
-
 }
 
 int main(int argc, char * argv[]) {
     char buf[MAX_LINE];
 
-
+    // commmand line arg checking
     if (argc != 4){
         fprintf(stderr, "You need 4 inputs, you provided: %d\n", argc);
         exit(1);
@@ -203,7 +209,7 @@ void *handle_messages(void*){
             strcpy(msg, message.c_str());
             buf = decrypt(msg);
             message = buf; 
-            cout << "\n*** Incoming privae message from " << frmUser << " ***: ";
+            cout << "\n*** Incoming private message from " << frmUser << " ***: ";
             cout << message << endl;
             cout << "> ";
             fflush(stdout);
